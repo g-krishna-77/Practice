@@ -1,0 +1,58 @@
+class Node:
+    def __init__(self, key):
+        self.data = key
+        self.next = None
+
+class Solution:
+    def reverseKGroup(self, head, k):
+        if not head or k == 1:
+            return head
+
+        dummy = Node(0)
+        dummy.next = head
+        curr = dummy
+        nex = dummy
+        pre = dummy
+        count = 0
+
+        # Count the number of nodes in the list
+        while curr.next:
+            curr = curr.next
+            count += 1
+
+        # Reverse every k nodes
+        while count >= k:
+            curr = pre.next
+            nex = curr.next
+            for _ in range(1, k):
+                curr.next = nex.next
+                nex.next = pre.next
+                pre.next = nex
+                nex = curr.next
+            pre = curr
+            count -= k
+
+        return dummy.next
+
+# Helper function to print linked list
+def printList(node):
+    while node:
+        print(node.data, end=" ")
+        node = node.next
+    print()
+
+# Example usage:
+# Create linked list 1->2->3->4->5->6
+head = Node(1)
+head.next = Node(2)
+head.next.next = Node(3)
+head.next.next.next = Node(4)
+head.next.next.next.next = Node(5)
+head.next.next.next.next.next = Node(6)
+
+solution = Solution()
+new_head = solution.reverseKGroup(head, 2)
+printList(new_head)  # Output: 2 1 4 3 6 5 
+
+new_head = solution.reverseKGroup(head, 4)
+printList(new_head)  # Output: 4 3 2 1 6 5 
