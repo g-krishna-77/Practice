@@ -1,0 +1,76 @@
+import random
+
+class Codec:
+    def encode(self, strs):
+        # Encode list of strings into a single string with length prefixes
+        encoded = ''
+        for s in strs:
+            encoded += str(len(s)) + '#' + s
+        return encoded
+
+    def decode(self, s):
+        # Decode the encoded string back into a list of strings
+        i = 0
+        decoded = []
+        while i < len(s):
+            # Read length prefix
+            j = i
+            while j < len(s) and s[j] != '#':
+                if not s[j].isdigit():
+                    # Tampered data detected
+                    return False, decoded
+                j += 1
+            if j == len(s):
+                # No '#' found; tampered data
+                return False, decoded
+
+            length = int(s[i:j])
+            i = j + 1
+
+            # Extract the string based on length
+            if i + length > len(s):
+                # Length goes beyond string; tampered
+                return False, decoded
+
+            segment = s[i:i+length]
+            i += length
+            decoded.append(segment)
+
+            if len(segment) != length:
+                return False, decoded
+
+        return True, decoded
+
+    def transmit(self, strs):
+        encoded = self.encode(strs)
+
+        def noisy_channel(encoded, flag=1):
+            # Simulate noise/tampering in transmission
+            if flag == 1:
+                return encoded
+            else:
+                tampered = list(encoded)
+                for _ in range(random.randint(1, max(1, len(encoded)//10))):
+                    idx = random.randint(0, len(encoded)-1)
+                    tampered[idx] = chr(random.randint(33, 126))
+                return ''.join(tampered)
+
+        # Randomly choose tampered or not
+        flag = random.choice([0, 1])
+
+        attempts = 0
+        while True:
+            attempts += 1
+            transmitted = noisy_channel(encoded, flag)
+            valid, decoded = self.decode(transmitted)
+            if valid:
+                return decoded
+            print(f'Retry {attempts}: Transmission tampered, requesting resend...')
+            # For next attempt, assume correct transmission
+            flag = 1
+
+# Example usage
+codec = Codec()
+message_list = ["leet", "code", "love", "you"]
+result = codec.transmit(message_list)
+print(result)  # Outputs original list after retransmissions if needed
